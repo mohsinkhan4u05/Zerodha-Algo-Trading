@@ -227,3 +227,145 @@ def get_holdings() -> Dict[str, Any]:
             'status': 'error',
             'message': error_msg
         }
+
+
+def get_ltp(symbol: str) -> Dict[str, Any]:
+    """
+    Get Last Traded Price (LTP) for a symbol
+    
+    Args:
+        symbol (str): Trading symbol (e.g., "RELIANCE")
+        
+    Returns:
+        dict: LTP data
+    """
+    try:
+        kite = get_kite()
+        
+        # Format symbol for NSE
+        instrument_token = f"NSE:{symbol.upper()}"
+        
+        # Get LTP
+        ltp_data = kite.ltp([instrument_token])
+        
+        if instrument_token in ltp_data:
+            ltp = ltp_data[instrument_token]['last_price']
+            logger.info(f"LTP for {symbol}: {ltp}")
+            return {
+                'status': 'success',
+                'symbol': symbol.upper(),
+                'ltp': ltp,
+                'data': ltp_data[instrument_token]
+            }
+        else:
+            raise Exception(f"No LTP data found for {symbol}")
+        
+    except Exception as e:
+        error_msg = f"Error fetching LTP for {symbol}: {str(e)}"
+        logger.error(error_msg)
+        return {
+            'status': 'error',
+            'message': error_msg,
+            'symbol': symbol
+        }
+
+
+def get_ohlc(symbol: str) -> Dict[str, Any]:
+    """
+    Get OHLC data for a symbol
+    
+    Args:
+        symbol (str): Trading symbol (e.g., "RELIANCE")
+        
+    Returns:
+        dict: OHLC data
+    """
+    try:
+        kite = get_kite()
+        
+        # Format symbol for NSE
+        instrument_token = f"NSE:{symbol.upper()}"
+        
+        # Get OHLC
+        ohlc_data = kite.ohlc([instrument_token])
+        
+        if instrument_token in ohlc_data:
+            data = ohlc_data[instrument_token]
+            logger.info(f"OHLC for {symbol}: O:{data['ohlc']['open']}, H:{data['ohlc']['high']}, L:{data['ohlc']['low']}, C:{data['ohlc']['close']}")
+            return {
+                'status': 'success',
+                'symbol': symbol.upper(),
+                'ohlc': data['ohlc'],
+                'ltp': data['last_price'],
+                'data': data
+            }
+        else:
+            raise Exception(f"No OHLC data found for {symbol}")
+        
+    except Exception as e:
+        error_msg = f"Error fetching OHLC for {symbol}: {str(e)}"
+        logger.error(error_msg)
+        return {
+            'status': 'error',
+            'message': error_msg,
+            'symbol': symbol
+        }
+
+
+def cancel_order(order_id: str) -> Dict[str, Any]:
+    """
+    Cancel an existing order
+    
+    Args:
+        order_id (str): Order ID to cancel
+        
+    Returns:
+        dict: Cancellation response
+    """
+    try:
+        kite = get_kite()
+        
+        # Cancel order
+        result = kite.cancel_order(variety=kite.VARIETY_REGULAR, order_id=order_id)
+        
+        logger.info(f"Order cancelled successfully: {order_id}")
+        
+        return {
+            'status': 'success',
+            'order_id': order_id,
+            'message': 'Order cancelled successfully',
+            'data': result
+        }
+        
+    except Exception as e:
+        error_msg = f"Error cancelling order {order_id}: {str(e)}"
+        logger.error(error_msg)
+        return {
+            'status': 'error',
+            'message': error_msg,
+            'order_id': order_id
+        }
+
+
+def get_orders() -> Dict[str, Any]:
+    """
+    Get all orders for the day
+    
+    Returns:
+        dict: Orders data
+    """
+    try:
+        kite = get_kite()
+        orders = kite.orders()
+        logger.info("Orders fetched successfully")
+        return {
+            'status': 'success',
+            'data': orders
+        }
+    except Exception as e:
+        error_msg = f"Error fetching orders: {str(e)}"
+        logger.error(error_msg)
+        return {
+            'status': 'error',
+            'message': error_msg
+        }
